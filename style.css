@@ -1,0 +1,65 @@
+* {
+    margin: 5px;
+}
+
+.hujnia, .odiKlass, .desKlass, .geoma  {
+    display: grid;
+    grid-template-columns: max-content max-content max-content max-content;
+    column-gap: 20px;
+    row-gap: 30px;
+}
+
+.hujnia .item, .odiKlass .item, .desKlass .item, .geoma .item {
+    font-size: 25px;
+    text-align: center;
+}
+
+.hdr {
+    margin-left: 40%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 30px;
+    color: brown;
+}
+
+.byebye {
+    margin-left: 8%;
+    font-size: 40px;
+    color:black
+}
+
+.answer, .or, .and, .yesNo {
+    position: absolute;
+    top: -5px;
+}
+
+button {
+    color: cadetblue;
+    background-color:papayawhip;
+    border-style:solid;
+    border-radius: 5px;
+    
+}
+
+button:hover{
+    background-color:limegreen;
+    color: red;
+    transition: 0.5s;
+    cursor:pointer;
+}
+
+.answer {
+    left: 20px;
+}
+
+.or {
+    left: 120px;
+}
+
+.and {
+    left: 430px;
+}
+
+.yesNo {
+    left: 540px;
+}
