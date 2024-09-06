@@ -7,6 +7,18 @@
     justify-content: space-between;
 }
 
+.wrapper {
+    display: flex;
+    position: fixed;
+    bottom: 0px;
+    right: 0px;
+}
+
+#button_1, #button_2, #button_3 {
+    padding: 10px;
+}
+
+
 .hujnia, .odiKlass, .desKlass, .geoma  {
     display: grid;
     justify-content: space-between;
