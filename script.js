@@ -25,3 +25,43 @@ function handleCopyLogicalAnd() {
 function handleCopyYesNo() {
     copy(YesNo);
 };
+
+window.addEventListener('DOMContentLoaded', function() {
+    const button = document.getElementById('newPageStatus');
+    const checkBox = document.getElementById('newPage');
+
+    function touchNewPageButton() {
+        if (button.innerText == "В той же вкладке") {
+            button.innerText = "В новой вкладке";
+            localStorage.setItem('newPageStatus', 'В новой вкладке');
+            localStorage.setItem('newPage', 'true');
+        }
+        else {
+            button.innerText = "В той же вкладке";
+            localStorage.setItem('newPageStatus', 'В той же вкладке');
+            localStorage.setItem('newPage', 'false');
+        }
+    }
+
+    const savedStatus = localStorage.getItem('newPageStatus');
+    if (savedStatus) {
+        button.innerText = savedStatus;
+    }
+
+    button.onclick = touchNewPageButton;
+
+    const links = document.querySelectorAll('.item a');
+
+    if (localStorage.getItem('newPage') === 'true') {
+        checkBox.checked = true;
+        addTargetBlank();
+    }
+
+    function addTargetBlank() {
+        links.forEach(link => link.setAttribute('target', '_blank'));
+    }
+
+    function removeTargetBlank() {
+        links.forEach(link => link.removeAttribute('target'));
+    }
+});

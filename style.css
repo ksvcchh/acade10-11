@@ -1,12 +1,33 @@
 * {
     margin: 5px;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+body {
     background-color:floralwhite;
 }
 
 .container1 {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+}
+
+.inlineWrapper {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+    align-items: center;
+}
+
+.yesNo {
+    margin-bottom: 0;
+}
+
+#newPage {
+    position: absolute;
+    top: -100px;
+    left: -100px;
 }
 
 .wrapper {
@@ -14,11 +35,6 @@
     position: fixed;
     bottom: 0px;
     right: 0px;
-    background:none;
-}
-
-.wrapper .entity, .wrapper .entity a {
-    background:none;
 }
 
 #button_1, #button_2, #button_3 {
