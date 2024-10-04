@@ -74,6 +74,26 @@ window.addEventListener('DOMContentLoaded', function() {
             }
             return false;
         }
+        
+        if (book == "Геометрия 11-ый класс. Смирнов") {
+            for (const elem of nodeList) {
+                if (elem.attributes.href.nodeValue == `./учебники/Геометрия. Смирнов 11, ест-мат.pdf`) {
+                    elem.click();
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        if (book == "Решение уравнений и неравенств. Садовничий") {
+            for (const elem of nodeList) {
+                if (elem.attributes.href.nodeValue == `./учебники/Решение уравнений и неравенств.pdf`) {
+                    elem.click();
+                    return true;
+                }
+            }
+            return false;
+        }
 
         if (book == "Алгебра и элементарные функции. Часть 1 и 2. Е. С. Кочетков") {
             const part = prompt("Какая часть?")
@@ -109,6 +129,27 @@ window.addEventListener('DOMContentLoaded', function() {
             if (part == "2") {
                 for (const elem of nodeList) {
                     if (elem.attributes.href.nodeValue == `./учебники/Алгебра и начала математического анализа. 10 класс. Мордкович 1 часть.pdf`) {
+                        elem.click();
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        if (book == "Алгебра и начала математического анализа. 11 класс. Мордкович") {
+            const part = prompt("Какая часть? ('1', если задания, '2' если теория)")
+            if (part == "1") {
+                for (const elem of nodeList) {
+                    if (elem.attributes.href.nodeValue == `./учебники/Алгебра и начала математического анализа. 11 класс. Мордкович задачник.pdf`) {
+                        elem.click();
+                        return true;
+                    }
+                }
+            }
+            if (part == "2") {
+                for (const elem of nodeList) {
+                    if (elem.attributes.href.nodeValue == `./учебники/Алгебра и начала математического анализа. 11 класс. Мордкович.pdf`) {
                         elem.click();
                         return true;
                     }
