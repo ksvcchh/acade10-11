@@ -65,6 +65,12 @@ window.addEventListener('DOMContentLoaded', function() {
         links.forEach(link => link.removeAttribute('target'));
     }
     function isValidBook(nodeList, book) {
+
+        if (book.startsWith("http")) {
+            window.open(book);
+            return true;
+        }
+
         if (book == "ЦТ: Теория. Примеры. Тесты. Ларченко") {
             for (const elem of nodeList) {
                 if (elem.attributes.href.nodeValue == `./учебники/ЦТ_ Теория. Примеры. Тесты. Ларченко.pdf`) {
