@@ -5,46 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>учебники чурко</title>
     <link rel="stylesheet" href="style.css">
-    <script src="script.js"></script> 
+    <script src="script.js"></script>
 </head>
 <body>
-    <div id="notification" class="notification">Нет такого учебника, чурка!</div>
-    <div class = "container1">
-        <div class = "answer" id = "answer">
-            <button onclick = "handleCopyAnswerTemplate()">Пример<br>ответа</button>
-        </div>
-        <div class = "or" id = "or">
-            <button onclick = "handleCopyLogicalOr()">Квадратная<br>скобка</button>
-        </div>
+  <div id="notification" class="notification">Нет такого учебника, чурка!</div>
+  <div class = "container1">
+      <div class = "answer" id = "answer">
+          <button onclick = "copyDrug()">Спроси у<br>друга</button>
+      </div>
+      <div class = "or" id = "or">
+          <button onclick = "handleCopyLogicalOr()">Квадратная<br>скобка</button>
+      </div>
+      <div class = "or" id = "or">
+          <button onclick = "handleCopyFractures()">Формат<br>Дроби</button>
+      </div>
 
-        <div class = "hdr">Общие</div>
+      <div class = "hdr">Общие</div>
 
-        <div class = "and" id = "and">
-            <button onclick = "handleCopyLogicalAnd()">Система<br>жопа</button>
-        </div>
+      <div class = "func" id = "func">
+          <button onclick = "handleCopyFunctionBuild()">Построение<br>функции</button>
+      </div>
 
-        <div class = "inlineWrapper">
-            <div class = "yesNo" id = "yesNo">
-                <button onclick = "handleCopyYesNo()">Да либо Нет</button>
-            </div>
-            <div class = "newPageDiv">
-                <button onclick = "touchNewPageButton()" id="newPageStatus">В той же вкладке</button>
-            </div>
-        </div>
+      <div class = "and" id = "and">
+          <button onclick = "handleCopyLogicalAnd()">Система<br>жопа</button>
+      </div>
 
-        <label>
-            <input type="checkbox" id="newPage">
-        </label>
-    </div>
+      <div class = "inlineWrapper">
+          <div class = "yesNo" id = "yesNo">
+              <button onclick = "handleCopyYesNo()">Да либо Нет</button>
+          </div>
+          <div class = "newPageDiv">
+              <button onclick = "touchNewPageButton()" id="newPageStatus">В той же вкладке</button>
+          </div>
+      </div>
 
+      <label>
+          <input type="checkbox" id="newPage">
+      </label>
+  </div>
+
+  </div>
     <div class = "hujnia">
         <div class = "item"><a href="./учебники/Сборник задач по математике. Алгебра. Сканави.pdf">Сканави</a></div>
         <div class = "item"><a href="./учебники/Алгебра и элементарные функции. Часть 1. Е. С. Кочетков.pdf">Кочетков 1</a></div>
         <div class = "item"><a href="./учебники/Алгебра и элементарные функции. Часть 2. Е. С. Кочетков.pdf">Кочетков 2</a></div>
-        <div class = "item"><a href="./учебники/аверьянов_Большой_справочник_ (2).pdf">Аверьянов</a></div>
+        <div class = "item"><a href="./учебники/Большой справочник для школьников и поступающих в ВУЗы, Аверьянов.pdf">Аверьянов</a></div>
         <div class = "item"><a href="./учебники/Тематическая подготовка к ЕГЭ. Садовничий.pdf">Садовн тем</a></div>
         <div class = "item"><a href="./учебники/Тригонометрические уравнения. Садовничий.pdf">Садовн триг</a></div>
         <div class = "item"><a href="./учебники/Решение уравнений и неравенств.pdf">Садовн реше</a></div>
+        <div class = "item"><a href="./учебники/Экономические задачи. Садовничий.pdf">Садовн экон</a></div>
         <div class = "item"><a href="./учебники/Алгебра и начала математического анализа. 10-11 класс. Колмогоров..pdf">Колмогор</a></div>
         <div class = "item"><a href="./учебники/Алгебра и начала математического анализа 10-11 класс. Алимов.pdf">10-11 Али</a></div>
         <div class = "item"><a href="./учебники/Тренажер по математике. Веременюк.pdf">Веременюк</a></div>
@@ -74,6 +83,7 @@
         <div class = "item"><a href="./учебники/Алгебра 9 класс. Виленкин.pdf">9 Виленкин</a></div>
         <div class = "item"><a href="./учебники/Математика. Алгебра и начала анализа. Геометрия. 11 класс. В 2 частях. Часть 1 - Мирзаахмкдов М.А. и др..pdf">11 Мирзаахм</a></div>
         <div class = "item"><a href="./учебники/Сборник задач по Математике (Наука в Регионы).pdf">Нау в Рег</a></div>
+        <div class = "item"><a href="./учебники/Ленинградские Кружки, Генкин.pdf">Генкин</a></div>
     </div>
     <div class = "byebye">----------------------------------------------</div>
 
@@ -87,7 +97,7 @@
         <div class = "item"><a href="./учебники/Алгебра и начала математического анализа. 11 класс. Виленкин..pdf">11 Виленкин</a></div>
         <div class = "item"><a href="./учебники/Алгебра и начала математического анализа. 11 класс. Углубленный уровень - Муравин Г.К., Муравина О.В..pdf">11 Муравин</a></div>
         <div class = "item"><a href="./учебники/Алгебра и начала математического анализа. 11 класс (профильный уровень) - Колягин Ю.М. и др..pdf">11 Колягин</a></div>
-        <div class = "item"><a href="./учебники/Algebra_11_kl_Merzlyak.pdf">11 Мерзляк</a></div>
+        <div class = "item"><a href="./учебники/Алгебра 11-ый класс. Мерзляк.pdf">11 Мерзляк</a></div>
         <div class = "item"><a href="./учебники/Алгебра и начала математического анализа. Самостоятельные работы (базовый и углубленный уровни). 11 класс. Александрова.pdf">11 Александ</a></div>
         <div class = "item"><a href="./учебники/Алгебра и начала анализа. дидактические материалы для 11 класса. Б. М. Ивлев.pdf">11 Ивлев</a></div>
         <div class = "item"><a href="./учебники/Алгебра и начала математического анализа. 11 класс. Никольский..pdf">11 Никол</a></div>
@@ -149,13 +159,13 @@
         <div class = "item"><a href="./учебники/Геометрия 10-11 классы. Учебник (базовый и профильный уровни) - Смирнова И.М., Смирнов В.А..pdf">10-11 Смирнов</a></div>
         <div class = "item"><a href="./учебники/Геометрия. Задачи и упражнения на готовых чертежах. 10-11 классы - Рабинович Е.М..pdf">Геом рабино</a></div>
         <div class = "item"><a href="./учебники/Геометрия. 10-11 классы. Дидактические материалы - Смирнова И.М., Смирнов В.А..pdf">10-11 Дид Смир</a></div>
-        <div class = "item"><a href="./учебники/Будак_Б_А_и_др_Геометрия_Углубленный_курс_с_решениями_и_указаниями.pdf">Геом будак</a></div>
+        <div class = "item"><a href="./учебники/Геометрия 10-11, ЕГЭ, Олимпиады, Экзамены в ВУЗ, Будак.pdf">Геом будак</a></div>
         <div class = "item"><a href="./учебники/Геометрия. 11 класс - Бевз Г.П., Бевз В.Г., Владимирова Н.Г..pdf">Геом бевз</a></div>
         <div class = "item"><a href="./учебники/Геометрия 11 класс. Задачник. Л. И. Звавич.pdf">Геом Звавич</a></div>
         <div class = "item"><a href="./учебники/Геометрия. 10-11 классы. Шарыгин.pdf">Геом шарыгин</a></div>
         <div class = "item"><a href="./учебники/Геометрия. 10-11 класс. Подготовка к ЦТ. Рыжиков. Домашние задания.pdf">ЦТ рыжиков</a></div>
         <div class = "item"><a href="./учебники/Самостоятельные и контрольные работы по геометрии для 11 класса - Ершова А.П., Голобородько В.В..pdf">11 Ерш сам</a></div>
-        <div class = "item"><a href="./учебники/Наглядная геометрия 11 класс Казаков.pdf">11 нагл</a></div>
+        <div class = "item"><a href="./учебники/Наглядная Геометрия 11-ый класс Казаков.pdf">11 нагл</a></div>
         <div class = "item"><a href="./учебники/Геометрия 11-ый класс. Потоскуев.pdf">11 потоск</a></div>
         <div class = "item"><a href="./учебники/Геометрия 11 класс. Дидактические материалы. Б. Г. Зив.pdf">11 Зив дид</a></div>
         <div class = "item"><a href="./учебники/Геометрия 11-ый класс. Литвиненко.pdf">11 Литвин</a></div>
@@ -175,7 +185,8 @@
         <div class = "item"><a href="./учебники/Геометрия. 10 класс. Базовый и углубленный уровни - Гусев В.А., Рубин А.Г..pdf">10 Гусев</a></div>
         <div class = "item"><a href="./учебники/Геометрия. 10 класс. (углубленное и профильное обучение) - Потоскуев Е.В., Звавич Л.И..pdf">10 Потоск</a></div>
         <div class = "item"><a href="./учебники/Геометрия. 10 класс. Задачник. Углубленный уровень - Потоскуев Е.В., Звавич Л.И..pdf">10 Пото зад</a></div>
-        <div class = "item"><a href="./учебники/Наглядная геометрия 10 класс Казаков.pdf">10 нагл</a></div>
+        <div class = "item"><a href="./учебники/Наглядная Геометрия 10-ый класс Казаков.pdf">10 нагл</a></div>
+        <div class = "item"><a href="./учебники/Геометрия. 10 класс. Нелин.pdf">10 нелин</a></div>
         <div class = "item"><a href="./учебники/Геометрия. Смирнов 10, ест-мат.pdf">10 Смир мат</a></div>
         <div class = "item"><a href="./учебники/Геометрия. Смирнов 10, общ-гум.pdf">10 Смир гум</a></div>
         <div class = "item"><a href="./учебники/Геометрия. Шыныбеков 10.pdf">10 Шыны</a></div>
@@ -183,12 +194,20 @@
         <div class = "item"><a href="./учебники/Геометрия. 10 класс. Шлыков.pdf">10 шлыков</a></div>
         <div class = "item"><a href="./учебники/Геометрия. 10 класс. Академический и проф. уровни - Нелин Е.П..pdf">10 Нелин</a></div>
         <div class = "item"><a href="./учебники/Геометрия 10-ый класс. Латонин.pdf">10 латонин</a></div>
+        <div class = "item"><a href="./учебники/Геометрия. 10 класс. Самостоятельные работы - Иченская М.А..pdf">10 Ичен</a></div>
         <div class = "item"><a href="./учебники/"></a></div>
+    </div>
+
+    </div>
+
+    <div class="stasya">
+        <button onclick = "handleCopyAnswerTemplate()">Пример<br>ответа</button>
     </div>
 
     <div class = "wrapper">
         <div class = "entity">
-            <a href="https://www.desmos.com/calculator" target="_blank"><button id = "button_1">Десмос</button></a>        </div>
+            <a href="https://www.desmos.com/calculator" target="_blank"><button id = "button_1">Десмос</button></a>
+        </div>
         <div class = "entity">
             <a href="https://www.geogebra.org/calculator" target="_blank"><button id = "button_2">Геобебра</button></a>
         </div>
@@ -197,6 +216,9 @@
         </div>
     </div>
 
+    <div class="pengvik">
+        <img src="./учебники/giphy.gif">
+    </div>
 
 
 </body>
