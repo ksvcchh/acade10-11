@@ -1,442 +1,728 @@
-const answerTemplate =
-  "<i>Пример ответа: </i>«3)».\n\n\\(1)\\) \\(\\);\n\n\\(2)\\) \\(\\);\n\n\\(3)\\) \\(\\).";
+const STORAGE_KEY = 'customButtons_10_11';
+const GRAPHS_KEY = 'graphs_10_11_v2';
+const DRAWINGS_KEY = 'drawings_10_11_v2';
 
-const logicalOr =
-  "\\left[\\begin{array}{l}\n\n\\\\[5px]\n\n\\end{array}\\right.";
+let buttons = [];
+let graphs = [];
+let drawings = [];
+let editingButtonId = null;
+let editingGraphsId = null;
+let editingDrawingsId = null;
+let isEditMode = false;
+let draggedButtonId = null;
 
-const logicalAnd = "\\begin{cases}\n\n\\\\\n\n\\end{cases}";
-
-const YesNo = "<i>В ответ введите </i>«да»<i> либо </i>«нет».";
-
-const fractures =
-  "<i>Полученные корни введите в ответ в порядке возрастания через пробел. Дроби записывайте в несократимом виде. Пример ответа:</i> «-4/7 2/3».";
-
-const promptDrug = `Я предоставлю условие математической задачи и предложенное решение. Твоя задача — провести детальный анализ решения с учётом следующих аспектов:
-
-    1. **Верность:**
-       - Проверь, соответствует ли решение условию задачи.
-       - Проверь правильность всех вычислений и применение корректных методов.
-       - Укажи, если обнаружены арифметические или логические ошибки.
-
-    2. **Логичность:**
-       - Оцени последовательность рассуждений и использование математических определений и теорем.
-       - Проверь, обоснованы ли все переходы и выводы, есть ли четкая аргументация.
-
-    3. **Полнота:**
-       - Определи, охватывает ли решение все аспекты поставленной задачи.
-       - Проверь, не упущены ли важные шаги или дополнительные соображения, необходимые для полного понимания решения.
-       - Если имеются альтернативные подходы или уточнения, отметь их.
-
-    Если решение удовлетворяет всем критериям, сообщи, что оно корректно, логично и полное. Если обнаружены ошибки или недостатки, подробно опиши, что именно не соответствует требуемым критериям и почему.
-
-    <Условие>
-
-    </Условие>
-
-    <Решение>
-
-    </Решение>`;
-
-const functionBuild = `<table>
-  <tr>
-    <td>\\(x\\)</td>
-    <td>\\(\\)</td>
-    <td>\\(\\)</td>
-    <td>\\(\\)</td>
-    <td>\\(\\)</td>
-    <td>\\(\\)</td>
-  </tr>
-  <tr>
-    <td>\\(y\\)</td>
-    <td>\\(\\)</td>
-    <td>\\(\\)</td>
-    <td>\\(\\)</td>
-    <td>\\(\\)</td>
-    <td>\\(\\)</td>
-  </tr>
-</table>`;
-
-function copy(arg) {
-  navigator.clipboard.writeText(arg);
+function copy(text) {
+    navigator.clipboard.writeText(text);
 }
 
-function handleCopyFunctionBuild() {
-  copy(functionBuild);
+function exportConfig() {
+    const config = {
+        version: 1,
+        exportDate: new Date().toISOString(),
+        buttons: buttons,
+        graphs: graphs,
+        drawings: drawings
+    };
+    
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '10_11_config.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
-function handleCopyAnswerTemplate() {
-  copy(answerTemplate);
+function importConfig(file) {
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        try {
+            const config = JSON.parse(e.target.result);
+            
+            if (!config.buttons || !Array.isArray(config.buttons)) {
+                throw new Error('Invalid config: missing buttons array');
+            }
+            
+            if (config.buttons && Array.isArray(config.buttons)) {
+                buttons = config.buttons;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(buttons));
+            }
+            
+            if (config.graphs && Array.isArray(config.graphs)) {
+                graphs = config.graphs;
+                localStorage.setItem(GRAPHS_KEY, JSON.stringify(graphs));
+            }
+            
+            if (config.drawings && Array.isArray(config.drawings)) {
+                drawings = config.drawings;
+                localStorage.setItem(DRAWINGS_KEY, JSON.stringify(drawings));
+            }
+            
+            renderButtons();
+            renderDropdowns();
+            
+            alert('Конфигурация успешно импортирована!');
+        } catch (err) {
+            alert('Ошибка при импорте: ' + err.message);
+        }
+    };
+    
+    reader.onerror = function() {
+        alert('Ошибка при чтении файла');
+    };
+    
+    reader.readAsText(file);
 }
 
-function handleCopyLogicalOr() {
-  copy(logicalOr);
+function openBookFile(filename) {
+    const path = `./учебники/${filename}.pdf`;
+    const newTab = localStorage.getItem("newPage") === "true";
+    window.open(path, newTab ? "_blank" : "_self");
+    return true;
 }
 
-function handleCopyLogicalAnd() {
-  copy(logicalAnd);
-}
-
-function handleCopyYesNo() {
-  copy(YesNo);
-}
-
-function handleCopyFractures() {
-  copy(fractures);
-}
-
-function copyDrug() {
-  copy(promptDrug);
-}
-
-window.addEventListener("DOMContentLoaded", function () {
-  const button = document.getElementById("newPageStatus");
-  const checkBox = document.getElementById("newPage");
-
-  function touchNewPageButton() {
-    if (button.innerText == "В той же вкладке") {
-      button.innerText = "В новой вкладке";
-      localStorage.setItem("newPageStatus", "В новой вкладке");
-      localStorage.setItem("newPage", "true");
-    } else {
-      button.innerText = "В той же вкладке";
-      localStorage.setItem("newPageStatus", "В той же вкладке");
-      localStorage.setItem("newPage", "false");
-    }
-  }
-
-  const savedStatus = localStorage.getItem("newPageStatus");
-  if (savedStatus) {
-    button.innerText = savedStatus;
-  }
-
-  button.onclick = touchNewPageButton;
-
-  const links = document.querySelectorAll(".item a");
-
-  if (localStorage.getItem("newPage") === "true") {
-    checkBox.checked = true;
-    addTargetBlank();
-  }
-
-  function addTargetBlank() {
-    links.forEach((link) => link.setAttribute("target", "_blank"));
-  }
-
-  function removeTargetBlank() {
-    links.forEach((link) => link.removeAttribute("target"));
-  }
-
-  function isValidBook(nodeList, book) {
+function isValidBook(book) {
     if (book.startsWith("http")) {
-      window.open(book, "_self");
-      return true;
+        window.open(book, "_self");
+        return true;
     }
 
     if (book == "ЦТ: Теория. Примеры. Тесты. Ларченко") {
-      for (const elem of nodeList) {
-        if (
-          elem.attributes.href.nodeValue ==
-          `./учебники/ЦТ_ Теория. Примеры. Тесты. Ларченко.pdf`
-        ) {
-          elem.click();
-          return true;
-        }
-      }
-      return false;
+        return openBookFile("ЦТ_ Теория. Примеры. Тесты. Ларченко");
     }
 
     if (book == "Геометрия 11-ый класс. Смирнов") {
-      for (const elem of nodeList) {
-        if (
-          elem.attributes.href.nodeValue ==
-          `./учебники/Геометрия. Смирнов 11, ест-мат.pdf`
-        ) {
-          elem.click();
-          return true;
-        }
-      }
-      return false;
+        return openBookFile("Геометрия. Смирнов 11, ест-мат");
     }
 
     if (book == "Решение уравнений и неравенств. Садовничий") {
-      for (const elem of nodeList) {
-        if (
-          elem.attributes.href.nodeValue ==
-          `./учебники/Решение уравнений и неравенств.pdf`
-        ) {
-          elem.click();
-          return true;
-        }
-      }
-      return false;
+        return openBookFile("Решение уравнений и неравенств");
     }
 
     if (book == "Геометрия 10-11 Рабинович") {
-      for (const elem of nodeList) {
-        if (
-          elem.attributes.href.nodeValue ==
-          `./учебники/Геометрия. Задачи и упражнения на готовых чертежах. 10-11 классы - Рабинович Е.М..pdf`
-        ) {
-          elem.click();
-          return true;
-        }
-      }
-      return false;
+        return openBookFile("Геометрия. Задачи и упражнения на готовых чертежах. 10-11 классы - Рабинович Е.М.");
     }
 
     if (book == "Алгебра и элементарные функции. Часть 1 и 2. Е. С. Кочетков") {
-      const part = prompt("Какая часть?");
-      if (part == "1") {
-        for (const elem of nodeList) {
-          if (
-            elem.attributes.href.nodeValue ==
-            `./учебники/Алгебра и элементарные функции. Часть 1. Е. С. Кочетков.pdf`
-          ) {
-            elem.click();
-            return true;
-          }
+        const part = prompt("Какая часть?");
+        if (part == "1") {
+            return openBookFile("Алгебра и элементарные функции. Часть 1. Е. С. Кочетков");
         }
-      }
-      if (part == "2") {
-        for (const elem of nodeList) {
-          if (
-            elem.attributes.href.nodeValue ==
-            `./учебники/Алгебра и элементарные функции. Часть 2. Е. С. Кочетков.pdf`
-          ) {
-            elem.click();
-            return true;
-          }
+        if (part == "2") {
+            return openBookFile("Алгебра и элементарные функции. Часть 2. Е. С. Кочетков");
         }
-      }
-      return false;
+        return false;
     }
 
-    if (
-      book == "Алгебра и начала математического анализа. 10 класс. Мордкович"
-    ) {
-      const part = prompt("Какая часть? ('1', если задания, '2' если теория)");
-      if (part == "1") {
-        for (const elem of nodeList) {
-          if (
-            elem.attributes.href.nodeValue ==
-            `./учебники/Алгебра и начала математического анализа. 10 класс. Мордкович 2 часть.pdf`
-          ) {
-            elem.click();
-            return true;
-          }
+    if (book == "Алгебра и начала математического анализа. 10 класс. Мордкович") {
+        const part = prompt("Какая часть? ('1', если задания, '2' если теория)");
+        if (part == "1") {
+            return openBookFile("Алгебра и начала математического анализа. 10 класс. Мордкович 2 часть");
         }
-      }
-      if (part == "2") {
-        for (const elem of nodeList) {
-          if (
-            elem.attributes.href.nodeValue ==
-            `./учебники/Алгебра и начала математического анализа. 10 класс. Мордкович 1 часть.pdf`
-          ) {
-            elem.click();
-            return true;
-          }
+        if (part == "2") {
+            return openBookFile("Алгебра и начала математического анализа. 10 класс. Мордкович 1 часть");
         }
-      }
-      return false;
+        return false;
     }
 
-    if (
-      book == "Алгебра и начала математического анализа. 11 класс. Мордкович"
-    ) {
-      const part = prompt("Какая часть? ('1', если задания, '2' если теория)");
-      if (part == "1") {
-        for (const elem of nodeList) {
-          if (
-            elem.attributes.href.nodeValue ==
-            `./учебники/Алгебра и начала математического анализа. 11 класс. Мордкович задачник.pdf`
-          ) {
-            elem.click();
-            return true;
-          }
+    if (book == "Алгебра и начала математического анализа. 11 класс. Мордкович") {
+        const part = prompt("Какая часть? ('1', если задания, '2' если теория)");
+        if (part == "1") {
+            return openBookFile("Алгебра и начала математического анализа. 11 класс. Мордкович задачник");
         }
-      }
-      if (part == "2") {
-        for (const elem of nodeList) {
-          if (
-            elem.attributes.href.nodeValue ==
-            `./учебники/Алгебра и начала математического анализа. 11 класс. Мордкович.pdf`
-          ) {
-            elem.click();
-            return true;
-          }
+        if (part == "2") {
+            return openBookFile("Алгебра и начала математического анализа. 11 класс. Мордкович");
         }
-      }
-      return false;
+        return false;
     }
 
-    for (const elem of nodeList) {
-      if (elem.attributes.href.nodeValue == `./учебники/${book}.pdf`) {
-        elem.click();
-        return true;
-      }
-    }
+    return openBookFile(book);
+}
 
-    return false;
-  }
-
-  this.document.addEventListener("paste", function (event) {
-    event.preventDefault();
-    const book = event.clipboardData.getData("text/plain").trim();
-    if (book.includes("Book") && !book.includes("Comment")) {
-      bookSearch(
-        event,
-        book
-          .trim()
-          .split("Book:")
-          .map((el) => el.trim())[1],
-      );
-    } else if (book.includes("Book") && book.includes("Comment")) {
-      bookSearch(
-        event,
-        book.trim().split("Book:")[1].split("Comment:")[0].trim(),
-      );
-      // } else if (book.includes("http") || book.includes(".ru")) {
-      //   window.open(book, "_self");
-    } else {
-      bookSearch(event, book);
-    }
-  });
-
-  this.document.addEventListener("dragover", function (event) {
-    event.preventDefault();
-  });
-
-  this.document.addEventListener("drop", function (event) {
-    event.preventDefault();
-    const book = event.dataTransfer.getData("text/plain").trim();
-    if (book.includes("Book") && !book.includes("Comment")) {
-      bookSearch(
-        event,
-        book
-          .trim()
-          .split("Book:")
-          .map((el) => el.trim())[1],
-      );
-    } else if (book.includes("Book") && book.includes("Comment")) {
-      bookSearch(
-        event,
-        book.trim().split("Book:")[1].split("Comment:")[0].trim(),
-      );
-    } else {
-      bookSearch(event, book);
-    }
-  });
-
-  function bookSearch(event, book) {
-    const nodeList = Array.from(document.querySelectorAll("div a"));
+function showNotification() {
     const notification = document.getElementById("notification");
-    // const book = event.clipboardData.getData('text/plain').trim();
+    notification.classList.remove("fade-out");
+    notification.classList.add("show");
+    setTimeout(() => notification.classList.add("fade-out"), 2000);
+    setTimeout(() => notification.classList.remove("show"), 2500);
+}
 
-    if (!isValidBook(nodeList, book)) {
-      notification.classList.remove("fade-out");
-      notification.classList.add("show");
+function bookSearch(book) {
+    isValidBook(book);
+}
 
-      setTimeout(function () {
-        notification.classList.add("fade-out");
-      }, 2000);
+function isModalOpen() {
+    const modals = ['button-editor-modal', 'graphs-editor-modal', 'drawings-editor-modal'];
+    return modals.some(id => {
+        const modal = document.getElementById(id);
+        return modal && modal.classList.contains('open');
+    });
+}
 
-      setTimeout(function () {
-        notification.classList.remove("show");
-      }, 2500);
+function loadButtons() {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed)) {
+                buttons = parsed;
+            } else {
+                buttons = [];
+            }
+        } else {
+            buttons = [];
+        }
+    } catch (e) {
+        buttons = [];
     }
-  }
-});
+    renderButtons();
+}
 
-const extraLinks = [
-  { name: "Куб", url: "https://www.geogebra.org/calculator/mtvupxrs" },
-  {
-    name: "3 накл призма",
-    url: "https://www.geogebra.org/calculator/vdeaw5cb",
-  },
-  {
-    name: "3 прав призма",
-    url: "https://www.geogebra.org/calculator/xubnkzhz",
-  },
-  {
-    name: "6 прав призма",
-    url: "https://www.geogebra.org/calculator/v2chmgg7",
-  },
-];
+function saveButtons() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(buttons));
+}
 
-const copyItems = [
-  {
-    name: "cos x",
-    text: "Функция \\(y=\\cos x\\) убывает на промежутке \\([0 ; \\pi]\\) и возрастает на промежутке \\([\\pi ; 2 \\pi]\\).\n\nФункция \\(y=\\cos x\\) на промежутке \\([0 ; 2 \\pi]\\) имеет два нуля: \\(x=\\dfrac{\\pi}{2}\\), \\(x=\\dfrac{3 \\pi}{2}\\).\n\nФункция \\(y=\\cos x\\) на промежутке \\([0 ; 2 \\pi]\\) достигает своего наибольшего значения, равного \\(1\\), при \\(x=0\\) или \\(x=2 \\pi\\) и наименьшего значения, равного \\(-1\\), при \\(x=\\pi\\).\n\nФункция \\(y=\\cos x\\) на промежутке \\([0 ; 2 \\pi]\\) принимает все значения из промежутка \\([-1 ; 1]\\).\n\nНа всей области определения график функции \\(y=\\cos x\\) можно получить из построенного графика с помощью параллельных переносов на векторы с координатами \\((2 \\pi n ; 0), n \\in\\Z\\), так как главный период функции косинуса равен \\(2\\pi\\).",
-  },
-];
-
-document.addEventListener("DOMContentLoaded", function () {
-  const container = document.createElement("div");
-  container.id = "extra-links-container";
-
-  const menu = document.createElement("div");
-  menu.id = "extra-links-menu";
-
-  extraLinks.forEach((link) => {
-    const a = document.createElement("a");
-    a.href = link.url;
-    a.textContent = link.name;
-    a.target = "_blank";
-    a.className = "extra-link-item";
-    menu.appendChild(a);
-  });
-
-  const btn = document.createElement("button");
-  btn.id = "extra-links-btn";
-  btn.innerHTML = "Чертежи";
-  btn.onclick = (e) => {
-    e.stopPropagation();
-    menu.classList.toggle("open");
-  };
-
-  container.appendChild(menu);
-  container.appendChild(btn);
-  document.body.appendChild(container);
-
-  document.addEventListener("click", (e) => {
-    if (!container.contains(e.target)) {
-      menu.classList.remove("open");
+function toggleEditMode() {
+    isEditMode = !isEditMode;
+    const editBtn = document.getElementById('edit-mode-btn');
+    if (isEditMode) {
+        editBtn.textContent = 'Готово';
+        editBtn.classList.add('active');
+    } else {
+        editBtn.textContent = 'Изменить расположение';
+        editBtn.classList.remove('active');
     }
-  });
+    renderButtons();
+}
 
-  const copyContainer = document.createElement("div");
-  copyContainer.id = "copy-links-container";
+function deleteButtonById(id) {
+    if (!confirm('Удалить эту кнопку?')) return;
+    buttons = buttons.filter(b => b.id !== id);
+    saveButtons();
+    renderButtons();
+}
 
-  const copyMenu = document.createElement("div");
-  copyMenu.id = "copy-links-menu";
+function handleDragStart(e, id) {
+    draggedButtonId = id;
+    e.target.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+}
 
-  copyItems.forEach((item) => {
-    const div = document.createElement("div");
-    div.textContent = item.name;
-    div.className = "copy-link-item";
-    div.onclick = (e) => {
-      e.stopPropagation();
-      copy(item.text);
-      copyMenu.classList.remove("open");
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+    draggedButtonId = null;
+    document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+}
+
+function handleDragEnter(e, id) {
+    if (draggedButtonId && draggedButtonId !== id) {
+        e.target.closest('.button-wrapper').classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    e.target.closest('.button-wrapper')?.classList.remove('drag-over');
+}
+
+function handleDrop(e, targetId) {
+    e.preventDefault();
+    if (!draggedButtonId || draggedButtonId === targetId) return;
+    
+    const draggedIndex = buttons.findIndex(b => b.id === draggedButtonId);
+    const targetIndex = buttons.findIndex(b => b.id === targetId);
+    
+    if (draggedIndex === -1 || targetIndex === -1) return;
+    
+    const [draggedItem] = buttons.splice(draggedIndex, 1);
+    buttons.splice(targetIndex, 0, draggedItem);
+    
+    saveButtons();
+    renderButtons();
+}
+
+function renderButtons() {
+    const container = document.getElementById('buttons-container');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    if (isEditMode) {
+        container.classList.add('edit-mode');
+    } else {
+        container.classList.remove('edit-mode');
+    }
+
+    buttons.forEach((btn, index) => {
+        if (isEditMode) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'button-wrapper edit-mode';
+            wrapper.draggable = true;
+            wrapper.dataset.id = btn.id;
+            
+            const animDelay = (index * 0.05 + Math.random() * 0.1).toFixed(2);
+            const animDuration = (0.12 + Math.random() * 0.06).toFixed(2);
+            wrapper.style.animationDelay = animDelay + 's';
+            wrapper.style.animationDuration = animDuration + 's';
+            
+            const deleteBtn = document.createElement('span');
+            deleteBtn.className = 'delete-x-btn';
+            deleteBtn.innerHTML = '×';
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                deleteButtonById(btn.id);
+            };
+            
+            const button = document.createElement('button');
+            button.className = 'main-btn';
+            button.textContent = btn.name;
+            
+            wrapper.ondragstart = (e) => handleDragStart(e, btn.id);
+            wrapper.ondragend = handleDragEnd;
+            wrapper.ondragover = handleDragOver;
+            wrapper.ondragenter = (e) => handleDragEnter(e, btn.id);
+            wrapper.ondragleave = handleDragLeave;
+            wrapper.ondrop = (e) => handleDrop(e, btn.id);
+            
+            wrapper.appendChild(deleteBtn);
+            wrapper.appendChild(button);
+            container.appendChild(wrapper);
+        } else {
+            const button = document.createElement('button');
+            button.textContent = btn.name;
+            button.onclick = () => copy(btn.content);
+            button.oncontextmenu = (e) => {
+                e.preventDefault();
+                openEditModal(btn.id);
+            };
+            container.appendChild(button);
+        }
+    });
+}
+
+function openAddModal() {
+    editingButtonId = null;
+    document.getElementById('modal-title').textContent = 'Новая кнопка';
+    document.getElementById('button-name-input').value = '';
+    document.getElementById('button-content-input').value = '';
+    document.getElementById('delete-button-btn').style.display = 'none';
+    document.getElementById('button-editor-modal').classList.add('open');
+}
+
+function openEditModal(id) {
+    editingButtonId = id;
+    const btn = buttons.find(b => b.id === id);
+    if (!btn) return;
+
+    document.getElementById('modal-title').textContent = 'Редактировать';
+    document.getElementById('button-name-input').value = btn.name;
+    document.getElementById('button-content-input').value = btn.content;
+    document.getElementById('delete-button-btn').style.display = 'block';
+    document.getElementById('button-editor-modal').classList.add('open');
+}
+
+function saveButton() {
+    const name = document.getElementById('button-name-input').value.trim();
+    const content = document.getElementById('button-content-input').value;
+
+    if (!name) {
+        alert('Введите название кнопки');
+        return;
+    }
+
+    if (editingButtonId) {
+        const btn = buttons.find(b => b.id === editingButtonId);
+        if (btn) {
+            btn.name = name;
+            btn.content = content;
+        }
+    } else {
+        buttons.push({
+            id: Date.now().toString(),
+            name: name,
+            content: content
+        });
+    }
+
+    saveButtons();
+    renderButtons();
+    closeButtonModal();
+}
+
+function deleteButton() {
+    if (!editingButtonId) return;
+    if (!confirm('Удалить эту кнопку?')) return;
+
+    buttons = buttons.filter(b => b.id !== editingButtonId);
+    saveButtons();
+    renderButtons();
+    closeButtonModal();
+}
+
+function closeButtonModal() {
+    document.getElementById('button-editor-modal').classList.remove('open');
+    editingButtonId = null;
+}
+
+function loadDropdowns() {
+    try {
+        const storedGraphs = localStorage.getItem(GRAPHS_KEY);
+        if (storedGraphs) {
+            const parsed = JSON.parse(storedGraphs);
+            graphs = Array.isArray(parsed) ? parsed : [];
+        } else {
+            graphs = [];
+        }
+    } catch (e) {
+        graphs = [];
+    }
+    
+    try {
+        const storedDrawings = localStorage.getItem(DRAWINGS_KEY);
+        if (storedDrawings) {
+            const parsed = JSON.parse(storedDrawings);
+            drawings = Array.isArray(parsed) ? parsed : [];
+        } else {
+            drawings = [];
+        }
+    } catch (e) {
+        drawings = [];
+    }
+    
+    renderDropdowns();
+}
+
+function saveDropdowns() {
+    localStorage.setItem(GRAPHS_KEY, JSON.stringify(graphs));
+    localStorage.setItem(DRAWINGS_KEY, JSON.stringify(drawings));
+}
+
+function renderDropdowns() {
+    renderGraphsMenu();
+    renderDrawingsMenu();
+}
+
+function renderGraphsMenu() {
+    const menu = document.getElementById('graphs-menu');
+    if (!menu) return;
+    menu.innerHTML = '';
+    
+    graphs.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'dropdown-item';
+        btn.textContent = item.name;
+        btn.onclick = (e) => {
+            e.preventDefault();
+            copy(item.content);
+            menu.classList.remove('open');
+        };
+        btn.oncontextmenu = (e) => {
+            e.preventDefault();
+            openGraphsEditModal(item.id);
+        };
+        menu.appendChild(btn);
+    });
+    
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-item-btn';
+    addBtn.textContent = '+ Добавить';
+    addBtn.onclick = (e) => {
+        e.stopPropagation();
+        openGraphsAddModal();
     };
-    copyMenu.appendChild(div);
-  });
+    menu.appendChild(addBtn);
+}
 
-  const copyBtn = document.createElement("button");
-  copyBtn.id = "copy-links-btn";
-  copyBtn.innerHTML = "Построение";
-  copyBtn.onclick = (e) => {
-    e.stopPropagation();
-    copyMenu.classList.toggle("open");
-  };
+function renderDrawingsMenu() {
+    const menu = document.getElementById('drawings-menu');
+    if (!menu) return;
+    menu.innerHTML = '';
+    
+    drawings.forEach(item => {
+        const link = document.createElement('a');
+        link.href = item.url;
+        link.target = '_blank';
+        link.textContent = item.name;
+        link.oncontextmenu = (e) => {
+            e.preventDefault();
+            openDrawingsEditModal(item.id);
+        };
+        menu.appendChild(link);
+    });
+    
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-item-btn';
+    addBtn.textContent = '+ Добавить';
+    addBtn.onclick = (e) => {
+        e.stopPropagation();
+        openDrawingsAddModal();
+    };
+    menu.appendChild(addBtn);
+}
 
-  copyContainer.appendChild(copyMenu);
-  copyContainer.appendChild(copyBtn);
-  document.body.appendChild(copyContainer);
+function openGraphsAddModal() {
+    editingGraphsId = null;
+    document.getElementById('graphs-modal-title').textContent = 'Новый элемент';
+    document.getElementById('graphs-name-input').value = '';
+    document.getElementById('graphs-content-input').value = '';
+    document.getElementById('delete-graphs-btn').style.display = 'none';
+    document.getElementById('graphs-editor-modal').classList.add('open');
+    closeDropdownMenus();
+}
 
-  document.addEventListener("click", (e) => {
-    if (!copyContainer.contains(e.target)) {
-      copyMenu.classList.remove("open");
+function openGraphsEditModal(id) {
+    editingGraphsId = id;
+    const item = graphs.find(i => i.id === id);
+    if (!item) return;
+    
+    document.getElementById('graphs-modal-title').textContent = 'Редактировать';
+    document.getElementById('graphs-name-input').value = item.name;
+    document.getElementById('graphs-content-input').value = item.content;
+    document.getElementById('delete-graphs-btn').style.display = 'block';
+    document.getElementById('graphs-editor-modal').classList.add('open');
+    closeDropdownMenus();
+}
+
+function saveGraphsItem() {
+    const name = document.getElementById('graphs-name-input').value.trim();
+    const content = document.getElementById('graphs-content-input').value;
+    
+    if (!name) {
+        alert('Введите название');
+        return;
     }
-  });
+    
+    if (editingGraphsId) {
+        const item = graphs.find(i => i.id === editingGraphsId);
+        if (item) {
+            item.name = name;
+            item.content = content;
+        }
+    } else {
+        graphs.push({
+            id: Date.now().toString(),
+            name: name,
+            content: content
+        });
+    }
+    
+    saveDropdowns();
+    renderDropdowns();
+    closeGraphsModal();
+}
+
+function deleteGraphsItem() {
+    if (!editingGraphsId) return;
+    if (!confirm('Удалить этот элемент?')) return;
+    
+    graphs = graphs.filter(i => i.id !== editingGraphsId);
+    saveDropdowns();
+    renderDropdowns();
+    closeGraphsModal();
+}
+
+function closeGraphsModal() {
+    document.getElementById('graphs-editor-modal').classList.remove('open');
+    editingGraphsId = null;
+}
+
+function openDrawingsAddModal() {
+    editingDrawingsId = null;
+    document.getElementById('drawings-modal-title').textContent = 'Новый элемент';
+    document.getElementById('drawings-name-input').value = '';
+    document.getElementById('drawings-url-input').value = '';
+    document.getElementById('delete-drawings-btn').style.display = 'none';
+    document.getElementById('drawings-editor-modal').classList.add('open');
+    closeDropdownMenus();
+}
+
+function openDrawingsEditModal(id) {
+    editingDrawingsId = id;
+    const item = drawings.find(i => i.id === id);
+    if (!item) return;
+    
+    document.getElementById('drawings-modal-title').textContent = 'Редактировать';
+    document.getElementById('drawings-name-input').value = item.name;
+    document.getElementById('drawings-url-input').value = item.url;
+    document.getElementById('delete-drawings-btn').style.display = 'block';
+    document.getElementById('drawings-editor-modal').classList.add('open');
+    closeDropdownMenus();
+}
+
+function saveDrawingsItem() {
+    const name = document.getElementById('drawings-name-input').value.trim();
+    const url = document.getElementById('drawings-url-input').value.trim();
+    
+    if (!name || !url) {
+        alert('Заполните все поля');
+        return;
+    }
+    
+    if (editingDrawingsId) {
+        const item = drawings.find(i => i.id === editingDrawingsId);
+        if (item) {
+            item.name = name;
+            item.url = url;
+        }
+    } else {
+        drawings.push({
+            id: Date.now().toString(),
+            name: name,
+            url: url
+        });
+    }
+    
+    saveDropdowns();
+    renderDropdowns();
+    closeDrawingsModal();
+}
+
+function deleteDrawingsItem() {
+    if (!editingDrawingsId) return;
+    if (!confirm('Удалить этот элемент?')) return;
+    
+    drawings = drawings.filter(i => i.id !== editingDrawingsId);
+    saveDropdowns();
+    renderDropdowns();
+    closeDrawingsModal();
+}
+
+function closeDrawingsModal() {
+    document.getElementById('drawings-editor-modal').classList.remove('open');
+    editingDrawingsId = null;
+}
+
+function closeDropdownMenus() {
+    document.getElementById('graphs-menu').classList.remove('open');
+    document.getElementById('drawings-menu').classList.remove('open');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const tabButton = document.getElementById('newPageStatus');
+    const savedStatus = localStorage.getItem('newPageStatus');
+    if (savedStatus) {
+        tabButton.textContent = savedStatus;
+    }
+
+    tabButton.onclick = function() {
+        if (tabButton.textContent === 'В той же вкладке') {
+            tabButton.textContent = 'В новой вкладке';
+            localStorage.setItem('newPageStatus', 'В новой вкладке');
+            localStorage.setItem('newPage', 'true');
+        } else {
+            tabButton.textContent = 'В той же вкладке';
+            localStorage.setItem('newPageStatus', 'В той же вкладке');
+            localStorage.setItem('newPage', 'false');
+        }
+    };
+
+    const graphsBtn = document.getElementById('graphs-btn');
+    const graphsMenu = document.getElementById('graphs-menu');
+    const drawingsBtn = document.getElementById('drawings-btn');
+    const drawingsMenu = document.getElementById('drawings-menu');
+
+    graphsBtn.onclick = function(e) {
+        e.stopPropagation();
+        drawingsMenu.classList.remove('open');
+        graphsMenu.classList.toggle('open');
+    };
+
+    drawingsBtn.onclick = function(e) {
+        e.stopPropagation();
+        graphsMenu.classList.remove('open');
+        drawingsMenu.classList.toggle('open');
+    };
+
+    document.addEventListener('click', function(e) {
+        if (!graphsMenu.contains(e.target) && e.target !== graphsBtn) {
+            graphsMenu.classList.remove('open');
+        }
+        if (!drawingsMenu.contains(e.target) && e.target !== drawingsBtn) {
+            drawingsMenu.classList.remove('open');
+        }
+    });
+
+    document.getElementById('add-button-btn').onclick = openAddModal;
+    document.getElementById('edit-mode-btn').onclick = toggleEditMode;
+    document.getElementById('save-button-btn').onclick = saveButton;
+    document.getElementById('cancel-button-btn').onclick = closeButtonModal;
+    document.getElementById('delete-button-btn').onclick = deleteButton;
+
+    document.getElementById('button-editor-modal').onclick = function(e) {
+        if (e.target === this) closeButtonModal();
+    };
+    
+    document.getElementById('save-graphs-btn').onclick = saveGraphsItem;
+    document.getElementById('cancel-graphs-btn').onclick = closeGraphsModal;
+    document.getElementById('delete-graphs-btn').onclick = deleteGraphsItem;
+    
+    document.getElementById('graphs-editor-modal').onclick = function(e) {
+        if (e.target === this) closeGraphsModal();
+    };
+    
+    document.getElementById('save-drawings-btn').onclick = saveDrawingsItem;
+    document.getElementById('cancel-drawings-btn').onclick = closeDrawingsModal;
+    document.getElementById('delete-drawings-btn').onclick = deleteDrawingsItem;
+    
+    document.getElementById('drawings-editor-modal').onclick = function(e) {
+        if (e.target === this) closeDrawingsModal();
+    };
+
+    document.getElementById('export-config-btn').onclick = exportConfig;
+    document.getElementById('import-config-btn').onclick = function() {
+        document.getElementById('import-file-input').click();
+    };
+    document.getElementById('import-file-input').onchange = function(e) {
+        if (e.target.files.length > 0) {
+            importConfig(e.target.files[0]);
+            e.target.value = '';
+        }
+    };
+
+    document.addEventListener('paste', function(event) {
+        if (isModalOpen()) {
+            return;
+        }
+        event.preventDefault();
+        const book = event.clipboardData.getData('text/plain').trim();
+        let searchTerm = book;
+
+        if (book.includes('Book') && !book.includes('Comment')) {
+            searchTerm = book.split('Book:').map(el => el.trim())[1];
+        } else if (book.includes('Book') && book.includes('Comment')) {
+            searchTerm = book.split('Book:')[1].split('Comment:')[0].trim();
+        }
+
+        bookSearch(searchTerm);
+    });
+
+    document.addEventListener('dragover', function(event) {
+        if (isModalOpen() || isEditMode) return;
+        event.preventDefault();
+    });
+
+    document.addEventListener('drop', function(event) {
+        if (isModalOpen() || isEditMode) return;
+        event.preventDefault();
+        const book = event.dataTransfer.getData('text/plain').trim();
+        let searchTerm = book;
+
+        if (book.includes('Book') && !book.includes('Comment')) {
+            searchTerm = book.split('Book:').map(el => el.trim())[1];
+        } else if (book.includes('Book') && book.includes('Comment')) {
+            searchTerm = book.split('Book:')[1].split('Comment:')[0].trim();
+        }
+
+        bookSearch(searchTerm);
+    });
+
+    loadButtons();
+    loadDropdowns();
 });
